@@ -104,8 +104,8 @@ static void init( Specimen &s , TRnd &r ,  const std::vector<Test> &tests ) {
 static Test createTest( TRnd &r) {
     const utyp SKIP = 1000;
     Test t;
-    t.buckets = r() % 20 + 10;
-    utyp size = t.buckets * ( r() % 5 + 2 );
+    t.buckets = r() % 100 + 10;
+    utyp size = t.buckets * ( r() % 7 + 3 );
     t.values.resize(size);
     for( utyp i=0 ; i<size ; i++ ) {
         for( utyp i=0 ; i<SKIP ; i++ ) {
@@ -122,9 +122,15 @@ int main(int argc, char *argv[]) {
     TRnd rnd(12345);
     Specimen specs[SPECIMENS];
     std::vector<Test> tests;
+    std::vector<Test> verify;
     for( utyp i=0 ; i<1 ; i++ ) {
         tests.push_back( createTest(rnd) );
     }
+    for( utyp i=0 ; i<300 ; i++ ) {
+        verify.push_back( createTest(rnd) );
+    }
+
+
     utyp best = 0;
 
     for( utyp i=0 ; i<SPECIMENS ; i++ ) {
@@ -135,7 +141,7 @@ int main(int argc, char *argv[]) {
     bool show = false;
     for( ultyp loop=0 ; true ; loop++ ) {
 
-        if( tests.size() < TESTS && (loop+1) % (1<<18) == 0 ) {
+        if( tests.size() < TESTS && (loop+1) % (1<<20) == 0 ) {
             tests.push_back( createTest(rnd) );
             best = 0;
             for( utyp i=0 ; i<SPECIMENS ; i++ ) {
@@ -158,15 +164,16 @@ int main(int argc, char *argv[]) {
                     best = i;
                     show = true;
                 }
-            } else if( rnd() & 2 ) {
+            } else if( rnd() % 2 == 0 ) {
                 specs[i].curr = specs[i].best;
             }
         }
 
-        if( show || ( (loop & ((1u<<10)-1)) == 0 && time(NULL) - lastShow >= 60 ) ) {
+        if( show || ( (loop & ((1u<<10)-1)) == 0 && time(NULL) - lastShow >= 300 ) ) {
             std::cout << "loops: " << loop             << std::endl;
             std::cout << "tests: " << tests.size()     << std::endl;
             std::cout << "eval: "  << specs[best].eval << std::endl;
+            std::cout << "verify: "  <<  eval( verify , specs[best].best ) << std::endl;
             for( utyp i=0 ; i<OPERATIONS ; i++ ) {
                 std::cout << "shiftL: " << specs[best].best.solve[i].shiftL << std::endl;
                 std::cout << "shiftR: " << specs[best].best.solve[i].shiftR << std::endl;
